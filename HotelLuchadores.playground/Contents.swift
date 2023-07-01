@@ -45,6 +45,7 @@ struct Reservation {
 
 /// Creación de reservas
 var gokuReserv = Reservation(clientList: [goku, bulma], duration: 2, breakfast: false)
+var vegeReserv = Reservation(clientList: [vegetta], duration: 1, breakfast: true)
 
 
 
@@ -70,5 +71,6 @@ class HotelReservationManager {
 
 let reception = HotelReservationManager()
 reception.makeReservation(reservation: gokuReserv)
+reception.makeReservation(reservation: vegeReserv)
 
 print(reception.reservationList)
