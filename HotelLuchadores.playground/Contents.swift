@@ -14,11 +14,11 @@ var bulma = Client(name: "Bulma", Age: 28, height: 1.65)
 
 
 // Reserva
-class Reservation {
+struct Reservation {
     
     var id: String = "GHIP"
     let hotelName : String = "Gran Hotel de Isla Papaya"
-    var clientList: [Client] = []
+    var clientList: [Client]
     var duration: Int = 0
     var price: Int = 50
     var breakfast: Bool
@@ -29,6 +29,7 @@ class Reservation {
         self.duration = duration
         //self.price = price
         self.breakfast = breakfast
+        self.clientList = clientList
     }
     
     func priceReservation() -> Int {
@@ -43,8 +44,8 @@ class Reservation {
 }
 
 /// Creación de reservas
-var r2d2 = Reservation(clientList: [goku, bulma], duration: 2, breakfast: false)
-r2d2.priceReservation()
+var gokuReserv = Reservation(clientList: [goku, bulma], duration: 2, breakfast: false)
+
 
 
 // Errores en la reserva
@@ -57,21 +58,17 @@ enum reservationError {
 
 // Gestion de reservas del hotel
 
-class HotelReservationManager: Reservation {
+class HotelReservationManager {
+    
     var reservationList: [Reservation] = []
-    var reservation : Reservation
     
-    init( reservation: Reservation) {
-        self.reservation = reservation
-        super.init(clientList: reservation.clientList, duration: reservation.duration, breakfast: reservation.breakfast)
+    func makeReservation(reservation: Reservation)  {
+        reservationList.append(reservation)
     }
     
-    func makeReservation(reservation: Reservation) {
-        self.reservationList.append(reservation)
-       
-    }
 }
 
-let res = HotelReservationManager(reservation: r2d2)
+let reception = HotelReservationManager()
+reception.makeReservation(reservation: gokuReserv)
 
-
+print(reception.reservationList)
