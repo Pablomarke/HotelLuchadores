@@ -14,38 +14,44 @@ var bulma = Client(name: "Bulma", Age: 28, height: 1.65)
 
 
 // Reserva
-struct Reservation {
+struct Reservation: Equatable {
     
-    var id: String = "GHIP"
+    var id: String
     let hotelName : String = "Gran Hotel de Isla Papaya"
     var clientList: [Client]
     var duration: Int = 0
-    var price: Int = 50
+    var price: Double = 20.0
     var breakfast: Bool
     
-    init( clientList: [Client], duration:Int, breakfast: Bool) {
-        //self.id = id
-        //self.hotelName = hotelName
+    /// init que implementa id único y genera el precio de la reserva llamando a la función para calcularlo (priceReservation)
+    init(clientList: [Client], duration:Int, breakfast: Bool) {
+        self.id = "GHIP\(clientList.count)\(clientList[0].name)\(duration)"
         self.duration = duration
-        //self.price = price
         self.breakfast = breakfast
         self.clientList = clientList
+        self.price = self.priceReservation()
+       
     }
-    
-    func priceReservation() -> Int {
-        var price = self.price
-        let clients = self.clientList.count
+
+    mutating func priceReservation() -> Double {
+        var price = Double(self.price)
+        let clients = Double(self.clientList.count)
+        let duration = Double(self.duration)
         if breakfast == true {
-            price += 15
+            price = price * 1.25
         }
         let total = price * clients * duration
         return total
     }
+    static func == (lhs: Reservation, rhs: Reservation) -> Bool {
+        lhs.id == rhs.id
+        return true
+    }
 }
 
 /// Creación de reservas
-var gokuReserv = Reservation(clientList: [goku, bulma], duration: 2, breakfast: false)
-var vegeReserv = Reservation(clientList: [vegetta], duration: 1, breakfast: true)
+var gokuReserv = Reservation( clientList: [goku, bulma], duration: 2, breakfast: false)
+var vegeReserv = Reservation( clientList: [vegetta], duration: 1, breakfast: true)
 
 
 
@@ -63,8 +69,16 @@ class HotelReservationManager {
     
     var reservationList: [Reservation] = []
     
+    /// Función de agregar reserva
     func makeReservation(reservation: Reservation)  {
         reservationList.append(reservation)
+        print("Reserva: \(reservation.id) realizada con exito. Deberá abonar: \(reservation.price) € a su llegada")
+    }
+    
+    func cancelReservation(reservation: Reservation) {
+        var position = reservationList.lastIndex(of: reservation)
+        reservationList.remove(at: position!)
+        print("Reserva: \(reservation.id) eliminada con exito")
     }
     
 }
@@ -72,5 +86,5 @@ class HotelReservationManager {
 let reception = HotelReservationManager()
 reception.makeReservation(reservation: gokuReserv)
 reception.makeReservation(reservation: vegeReserv)
+reception.cancelReservation(reservation: vegeReserv)
 
-print(reception.reservationList)
