@@ -2,16 +2,11 @@ import UIKit
 import Foundation
 
 // Clientes
-struct Client {
+struct Client: Equatable {
     let name: String
     var Age: Int
     var height: Double
 }
-///creación de clientes
-var goku = Client(name: "Goku", Age: 40, height: 1.75)
-var vegetta = Client(name: "Vegeta", Age: 46, height: 1.64)
-var bulma = Client(name: "Bulma", Age: 28, height: 1.65)
-
 
 // Reserva
 struct Reservation: Equatable {
@@ -30,9 +25,8 @@ struct Reservation: Equatable {
         self.breakfast = breakfast
         self.clientList = clientList
         self.price = self.priceReservation()
-       
     }
-
+    
     mutating func priceReservation() -> Double {
         var price = Double(self.price)
         let clients = Double(self.clientList.count)
@@ -44,16 +38,10 @@ struct Reservation: Equatable {
         return total
     }
     static func == (lhs: Reservation, rhs: Reservation) -> Bool {
-        lhs.id == rhs.id
-        return true
+        lhs.id == rhs.id || lhs.clientList == rhs.clientList
+       
     }
 }
-
-/// Creación de reservas
-var gokuReserv = Reservation( clientList: [goku, bulma], duration: 2, breakfast: false)
-var vegeReserv = Reservation( clientList: [vegetta], duration: 1, breakfast: true)
-
-
 
 // Errores en la reserva
 
@@ -69,12 +57,25 @@ class HotelReservationManager {
     
     var reservationList: [Reservation] = []
     
-    /// Función de agregar reserva
-    func makeReservation(reservation: Reservation)  {
-        reservationList.append(reservation)
-        print("Reserva: \(reservation.id) realizada con exito. Deberá abonar: \(reservation.price) € a su llegada")
+    /// Función Comprobar id repetido
+    func idReservation(reservation: Reservation) -> Bool{
+        for i in reservationList{
+            if i == reservation {
+                return false
+            }
+        }
+        return true
     }
     
+    /// Función de agregar reserva
+    func makeReservation(reservation: Reservation)  {
+        if self.idReservation(reservation: reservation) {
+            reservationList.append(reservation)
+            print("Reserva: \(reservation.id) realizada con exito. Deberá abonar: \(reservation.price) € a su llegada")
+        }
+    }
+    
+    /// Función de borrar reserva
     func cancelReservation(reservation: Reservation) {
         var position = reservationList.lastIndex(of: reservation)
         reservationList.remove(at: position!)
@@ -82,9 +83,24 @@ class HotelReservationManager {
     }
     
 }
+///creación de clientes
+var goku = Client(name: "Goku", Age: 40, height: 1.75)
+var vegetta = Client(name: "Vegeta", Age: 46, height: 1.64)
+var bulma = Client(name: "Bulma", Age: 28, height: 1.65)
 
+/// Creación de reservas
+var gokuReserv = Reservation( clientList: [goku, bulma], duration: 2, breakfast: false)
+var vegeReserv = Reservation( clientList: [vegetta], duration: 1, breakfast: true)
+var gokuReserv2 = Reservation( clientList: [goku], duration: 2, breakfast: false)
+
+/// Creación pruebas HotelResevation Manager
 let reception = HotelReservationManager()
 reception.makeReservation(reservation: gokuReserv)
+reception.makeReservation(reservation: gokuReserv2)
 reception.makeReservation(reservation: vegeReserv)
+print(reception.reservationList.count)
+reception.makeReservation(reservation: gokuReserv)
+print(reception.reservationList.count)
 reception.cancelReservation(reservation: vegeReserv)
+print(reception.reservationList.count)
 
