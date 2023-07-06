@@ -1,4 +1,3 @@
-import UIKit
 import Foundation
 
 // Clientes
@@ -6,6 +5,10 @@ struct Client: Equatable {
     var name: String
     var Age: Int
     var height: Double
+    
+    static func == (lhs: Client, rhs: Client) -> Bool {
+        lhs.name == rhs.name && lhs.Age == rhs.Age && lhs.height == rhs.height
+    }
 }
 
 // Reserva
@@ -21,13 +24,13 @@ struct Reservation: Equatable {
     
     static func == (lhs: Reservation, rhs: Reservation) -> Bool {
         lhs.id == rhs.id
-       
+        
     }
 }
 
 // Errores en la reserva
 
-enum reservationError {
+enum reservationError: Error {
     case id
     case repeatClient
     case noReservation
@@ -48,28 +51,38 @@ class HotelReservationManager {
         reservationUsed.hotelName = "Gran Hotel Isla Papaya"
         reservationUsed.price = priceReservation(reservation: reservation)
         
-        if idReservation(reservation: reservationUsed) == true{
-            
+        do {
+            try validateId(id: reservationUsed.id)
+            try validateClients(clients: reservationUsed.clientList)
             reservationList.append(reservationUsed)
             print("Reserva: \(reservationUsed.id) realizada con exito. \nDeberá abonar: \(reservationUsed.price) € a su llegada")
-        } else {
-            print("Error, no se pudo crear")
+            
+        } catch {
+            print("Error:", error)
+            
         }
     }
     
     /// Función de borrar reserva
-    func cancelReservation(Reservationid: String) {
-        for i in reservationList{
-            if i.id == Reservationid{
-                reservationList.remove(at: reservationList.lastIndex(of: i)!)
+    func cancelReservation(reservationid: String) {
+        do{
+            try noExistId(id: reservationid)
+            for i in reservationList{
+                if i.id == reservationid{
+                    reservationList.remove(at: reservationList.lastIndex(of: i)!)
+                    print("Reserva \(reservationid) eliminada con exito")
+                }
             }
+        } catch {
+            print("Error :", error)
         }
+        
         //var position = reservationList.lastIndex(of: Reservationid)
         //reservationList.remove(at: position!)
         
     }
     
-    /// Función de caluclar precio de la reserva
+    /// Función de calcular precio de la reserva
     func priceReservation(reservation: Reservation) -> Double {
         var price = Double(reservation.price)
         let clients = Double(reservation.clientList.count)
@@ -81,20 +94,54 @@ class HotelReservationManager {
         let total = price * clients * duration
         return total
     }
-        
+    
+    
+    // ERROR:
+    
     /// Función Comprobar id repetido
-    func idReservation(reservation: Reservation) -> Bool {
+    func validateId(id: String) throws {
         for i in reservationList {
-            if reservation.id == i.id {
-                return false
+            if id == i.id {
+                throw reservationError.id
             }
         }
-        return true
     }
     
-
+    /// Función comprobar si el cliente existe
+    func validateClients(clients: [Client]) throws {
+        for c in clients{
+            for i in reservationList{
+                if i.clientList.contains(c){
+                    throw reservationError.repeatClient
+                }
+            }
+        }
+    }
     
+    ///Función comprobar id existe
+    func noExistId(id:String) throws {
+        var count = 0
+        for i in reservationList{
+            if i.id.contains(id){
+                count += 1
+            }
+        }
+        if count >= 1 {
+            return
+        } else {
+            throw reservationError.noReservation
+        }
+        
+        
+    }
 }
+
+
+
+
+
+
+
 ///creación de clientes
 var goku = Client(name: "Goku", Age: 40, height: 1.75)
 var vegetta = Client(name: "Vegeta", Age: 46, height: 1.64)
@@ -104,20 +151,59 @@ var bulma = Client(name: "Bulma", Age: 28, height: 1.65)
 
 var gokuReserv = Reservation( clientList: [goku, bulma], duration: 2, breakfast: false)
 var vegeReserv = Reservation( clientList: [vegetta], duration: 1, breakfast: true)
-  
-///creacion reserva mal (por id)
-var gokuReserv2 = Reservation( clientList: [goku, vegetta], duration: 2, breakfast: false)
+
+///creacion reserva mal
+var gokuReserv2 = Reservation( clientList: [goku, vegetta], duration: 2, breakfast: false) //por id
+var gokuReserv3 = Reservation( clientList: [goku, vegetta], duration: 3, breakfast: false) // por cliente
+
+
+class HotelTests {
+    func testAddReservation(){
+        let receptionTest1 = HotelReservationManager()
+
+        receptionTest1.makeReservation(reservation: gokuReserv) //reserva bien
+        receptionTest1.makeReservation(reservation: gokuReserv2) // reserva duplicados Id y clientes
+        assert(receptionTest1.reservationList.count == 1) //1
+        receptionTest1.makeReservation(reservation: gokuReserv3) // reserva duplicados Id y clientes
+        assert(receptionTest1.reservationList.count == 1) //1
+        receptionTest1.makeReservation(reservation: vegeReserv) //reserva bien
+        assert(receptionTest1.reservationList.count == 2)//2
+    }
+    
+    func testCancelReservation(){
+        let receptionTest2 = HotelReservationManager()
+        receptionTest2.makeReservation(reservation: vegeReserv) //reserva bien
+        assert(receptionTest2.reservationList.count == 1)//1
+        receptionTest2.cancelReservation(reservationid: "GHIVegeta") // no id
+        assert(receptionTest2.reservationList.count == 1)
+        receptionTest2.cancelReservation(reservationid: "GHIP1Vegeta1")//borrado
+        assert(receptionTest2.reservationList.count == 0) //0
+        
+    }
+    
+    func testReservationPrice(){
+        let receptionTest3 = HotelReservationManager()
+        assert(receptionTest3.priceReservation(reservation: gokuReserv) == 80.0)
+    }
+}
+
+let goodExercise = HotelTests()
+goodExercise.testAddReservation()
+goodExercise.testCancelReservation()
+goodExercise.testReservationPrice()
 
 /// Creación pruebas HotelResevation Manager
+/*
 let reception = HotelReservationManager()
 
-reception.makeReservation(reservation: gokuReserv)
-reception.makeReservation(reservation: Reservation(clientList: [bulma], duration: 3, breakfast: true))
-reception.makeReservation(reservation: gokuReserv2)
-print(reception.reservationList.count)
-reception.makeReservation(reservation: vegeReserv)
-print(reception.reservationList.count)
-
-reception.cancelReservation(Reservationid: "GHIP1Vegeta1")
-print(reception.reservationList.count)
-
+reception.makeReservation(reservation: gokuReserv) //reserva bien
+reception.makeReservation(reservation: gokuReserv2) // reserva duplicados Id y clientes
+print("Número total de reservas",reception.reservationList.count) //1
+reception.makeReservation(reservation: gokuReserv3) // reserva duplicados Id y clientes
+print("Número total de reservas",reception.reservationList.count) //1
+reception.makeReservation(reservation: vegeReserv) //reserva bien
+print("Número total de reservas",reception.reservationList.count)//2
+reception.cancelReservation(reservationid: "GHIVegeta") // no id
+reception.cancelReservation(reservationid: "GHIP1Vegeta1")//borrado
+print("Número total de reservas",reception.reservationList.count) //1
+*/
