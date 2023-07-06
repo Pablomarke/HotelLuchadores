@@ -1,6 +1,6 @@
 import Foundation
 
-// Clientes
+// MARK: Clientes
 struct Client: Equatable {
     var name: String
     var Age: Int
@@ -11,7 +11,7 @@ struct Client: Equatable {
     }
 }
 
-// Reserva
+// MARK: Reserva
 struct Reservation: Equatable {
     
     var clientList: [Client]
@@ -28,16 +28,14 @@ struct Reservation: Equatable {
     }
 }
 
-// Errores en la reserva
-
+// MARK: Control de errores en la reserva
 enum reservationError: Error {
     case id
     case repeatClient
     case noReservation
 }
 
-// Gestion de reservas del hotel
-
+// MARK: Gestión de reservas del hotel
 class HotelReservationManager {
     
     var reservationList: [Reservation] = []
@@ -59,11 +57,10 @@ class HotelReservationManager {
             
         } catch {
             print("Error:", error)
-            
         }
     }
     
-    /// Función de borrar reserva
+    /// Función para cancelar reserva
     func cancelReservation(reservationid: String) {
         do{
             try noExistId(id: reservationid)
@@ -76,10 +73,6 @@ class HotelReservationManager {
         } catch {
             print("Error :", error)
         }
-        
-        //var position = reservationList.lastIndex(of: Reservationid)
-        //reservationList.remove(at: position!)
-        
     }
     
     /// Función de calcular precio de la reserva
@@ -131,40 +124,33 @@ class HotelReservationManager {
         } else {
             throw reservationError.noReservation
         }
-        
-        
     }
 }
 
-
-
-
-
-
-
-///creación de clientes
+// MARK: Tests y creación de objetos de ejemplo
+/// Creación de clientes
 var goku = Client(name: "Goku", Age: 40, height: 1.75)
 var vegetta = Client(name: "Vegeta", Age: 46, height: 1.64)
 var bulma = Client(name: "Bulma", Age: 28, height: 1.65)
 
 /// Creación de reservas
-
 var gokuReserv = Reservation( clientList: [goku, bulma], duration: 2, breakfast: false)
 var vegeReserv = Reservation( clientList: [vegetta], duration: 1, breakfast: true)
 
-///creacion reserva mal
-var gokuReserv2 = Reservation( clientList: [goku, vegetta], duration: 2, breakfast: false) //por id
+/// Creación de reservas mal realizadas
+var gokuReserv2 = Reservation( clientList: [goku, vegetta], duration: 2, breakfast: false) // repetición de id y clientes
 var gokuReserv3 = Reservation( clientList: [goku, vegetta], duration: 3, breakfast: false) // por cliente
 
-
+// Tests
 class HotelTests {
+    
     func testAddReservation(){
         let receptionTest1 = HotelReservationManager()
 
         receptionTest1.makeReservation(reservation: gokuReserv) //reserva bien
-        receptionTest1.makeReservation(reservation: gokuReserv2) // reserva duplicados Id y clientes
+        receptionTest1.makeReservation(reservation: gokuReserv2) //reserva duplicados Id y clientes
         assert(receptionTest1.reservationList.count == 1) //1
-        receptionTest1.makeReservation(reservation: gokuReserv3) // reserva duplicados Id y clientes
+        receptionTest1.makeReservation(reservation: gokuReserv3) //reserva duplicados Id y clientes
         assert(receptionTest1.reservationList.count == 1) //1
         receptionTest1.makeReservation(reservation: vegeReserv) //reserva bien
         assert(receptionTest1.reservationList.count == 2)//2
@@ -192,18 +178,4 @@ goodExercise.testAddReservation()
 goodExercise.testCancelReservation()
 goodExercise.testReservationPrice()
 
-/// Creación pruebas HotelResevation Manager
-/*
-let reception = HotelReservationManager()
 
-reception.makeReservation(reservation: gokuReserv) //reserva bien
-reception.makeReservation(reservation: gokuReserv2) // reserva duplicados Id y clientes
-print("Número total de reservas",reception.reservationList.count) //1
-reception.makeReservation(reservation: gokuReserv3) // reserva duplicados Id y clientes
-print("Número total de reservas",reception.reservationList.count) //1
-reception.makeReservation(reservation: vegeReserv) //reserva bien
-print("Número total de reservas",reception.reservationList.count)//2
-reception.cancelReservation(reservationid: "GHIVegeta") // no id
-reception.cancelReservation(reservationid: "GHIP1Vegeta1")//borrado
-print("Número total de reservas",reception.reservationList.count) //1
-*/
