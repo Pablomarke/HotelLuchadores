@@ -2,9 +2,9 @@ import Foundation
 
 // MARK: Clientes
 struct Client: Equatable {
-    var name: String
-    var Age: Int
-    var height: Double
+    let name: String
+    let Age: Int
+    let height: Int
     
     static func == (lhs: Client, rhs: Client) -> Bool {
         lhs.name == rhs.name && lhs.Age == rhs.Age && lhs.height == rhs.height
@@ -14,9 +14,9 @@ struct Client: Equatable {
 // MARK: Reserva
 struct Reservation: Equatable {
     
-    var clientList: [Client]
-    var duration: Int
-    var breakfast: Bool
+    let clientList: [Client]
+    let duration: Int
+    let breakfast: Bool
     
     var price: Double = 20
     var id: String = ""
@@ -29,8 +29,8 @@ struct Reservation: Equatable {
 }
 
 // MARK: Control de errores en la reserva
-enum reservationError: Error {
-    case id
+enum ReservationError: Error {
+    case sameIdReservation
     case repeatClient
     case noReservation
 }
@@ -45,6 +45,7 @@ class HotelReservationManager {
         var reservationUsed = Reservation(clientList: reservation.clientList,
                                           duration: reservation.duration,
                                           breakfast: reservation.breakfast)
+        
         reservationUsed.id = "GHIP\(reservationUsed.clientList.count)\(reservationUsed.clientList[0].name)\(reservationUsed.duration)"
         reservationUsed.hotelName = "Gran Hotel Isla Papaya"
         reservationUsed.price = priceReservation(reservation: reservation)
@@ -64,9 +65,9 @@ class HotelReservationManager {
     func cancelReservation(reservationid: String) {
         do{
             try noExistId(id: reservationid)
-            for i in reservationList{
-                if i.id == reservationid{
-                    reservationList.remove(at: reservationList.lastIndex(of: i)!)
+            for position in reservationList{
+                if position.id == reservationid{
+                    reservationList.remove(at: reservationList.lastIndex(of: position)!)
                     print("Reserva \(reservationid) eliminada con exito")
                 }
             }
@@ -77,11 +78,11 @@ class HotelReservationManager {
     
     /// Función de calcular precio de la reserva
     func priceReservation(reservation: Reservation) -> Double {
-        var price = Double(reservation.price)
+        var price = reservation.price
         let clients = Double(reservation.clientList.count)
         let duration = Double(reservation.duration)
         let breakfast = reservation.breakfast
-        if breakfast == true {
+        if breakfast {
             price = price * 1.25
         }
         let total = price * clients * duration
@@ -95,17 +96,17 @@ class HotelReservationManager {
     func validateId(id: String) throws {
         for i in reservationList {
             if id == i.id {
-                throw reservationError.id
+                throw ReservationError.sameIdReservation
             }
         }
     }
     
     /// Función comprobar si el cliente existe
     func validateClients(clients: [Client]) throws {
-        for c in clients{
-            for i in reservationList{
-                if i.clientList.contains(c){
-                    throw reservationError.repeatClient
+        for client in clients{
+            for reservation in reservationList{
+                if reservation.clientList.contains(client){
+                    throw ReservationError.repeatClient
                 }
             }
         }
@@ -113,33 +114,32 @@ class HotelReservationManager {
     
     ///Función comprobar id existe
     func noExistId(id:String) throws {
-        var count = 0
-        for i in reservationList{
-            if i.id.contains(id){
-                count += 1
+        var count:[String] = []
+        for ids in reservationList{
+            if ids.id.contains(id){
+                count.append(ids.id)
             }
         }
-        if count >= 1 {
-            return
-        } else {
-            throw reservationError.noReservation
+        if count.isEmpty {
+            throw ReservationError.noReservation
         }
+        return
     }
 }
 
 // MARK: Tests y creación de objetos de ejemplo
 /// Creación de clientes
-var goku = Client(name: "Goku", Age: 40, height: 1.75)
-var vegetta = Client(name: "Vegeta", Age: 46, height: 1.64)
-var bulma = Client(name: "Bulma", Age: 28, height: 1.65)
+let goku = Client(name: "Goku", Age: 40, height: 175)
+let vegetta = Client(name: "Vegeta", Age: 46, height: 164)
+let bulma = Client(name: "Bulma", Age: 28, height: 165)
 
 /// Creación de reservas
-var gokuReserv = Reservation( clientList: [goku, bulma], duration: 2, breakfast: false)
-var vegeReserv = Reservation( clientList: [vegetta], duration: 1, breakfast: true)
+let gokuReserv = Reservation( clientList: [goku, bulma], duration: 2, breakfast: false)
+let vegeReserv = Reservation( clientList: [vegetta], duration: 1, breakfast: true)
 
 /// Creación de reservas mal realizadas
-var gokuReserv2 = Reservation( clientList: [goku, vegetta], duration: 2, breakfast: false) // repetición de id y clientes
-var gokuReserv3 = Reservation( clientList: [goku, vegetta], duration: 3, breakfast: false) // por cliente
+let gokuReserv2 = Reservation( clientList: [goku, vegetta], duration: 2, breakfast: false) // repetición de id y clientes
+let gokuReserv3 = Reservation( clientList: [goku, vegetta], duration: 3, breakfast: false) // por cliente
 
 // Tests
 class HotelTests {
