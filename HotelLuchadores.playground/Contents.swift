@@ -42,9 +42,7 @@ class HotelReservationManager {
     
     /// Función de agregar reserva con ID único, precio actualizado y nombre del hotel
     func makeReservation(reservation: Reservation) {
-        var reservationUsed = Reservation(clientList: reservation.clientList,
-                                          duration: reservation.duration,
-                                          breakfast: reservation.breakfast)
+        var reservationUsed = reservation
         
         reservationUsed.id = "GHIP\(reservationUsed.clientList.count)\(reservationUsed.clientList[0].name)\(reservationUsed.duration)"
         reservationUsed.hotelName = "Gran Hotel Isla Papaya"
